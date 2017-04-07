@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<head>
+	<title>Adriana Castilla Hernandez</title>
+	<script src="processing-1.0.0.min.js"></script>
+	<script src="http://cs.nyu.edu/~kapp/cs101/processing_on_the_web/processing.js"></script>
+</head>
+<body>
+	<h1>Final Project</h1>
+	<h2>Adriana Castilla Hernandez</h2>
+	<p>Interactive Chaos Algorithm</p>
+	<script type="text/processing" data-processing-target="processing-canvas">
+		PVector seed;
+		PVector[] points ;
+		color[] colors;
+		color dot;
+		int sides;
+		float ratio;
+		int rectX, rectY, plusX, plusY;      // Position of buttons
+		int rectSize = 30;     // Diameter of rect
+		color rectColor,rectHighlight;
+		boolean rectOver = false;
+		boolean plusOver = false;
+
+		void setup(){
+		  size(600,600);
+		  background(255);
+
+		  //button properties
+		  rectColor = color(0);
+		  rectHighlight = color(51);
+		  rectX = rectY = plusY = 30;
+		  plusX = 90;
+		  sides = 3;
+		  textSize(28);
+		  setUp();
+		  text(sides,rectX + 5*rectSize/4, rectY+5*rectSize/6);
+		}
+
+		void draw(){
+		   update();
+		   if (rectOver) {
+		    fill(rectHighlight);
+		  } else {
+		    fill(rectColor);
+		  }
+		  rect(rectX, rectY, rectSize, rectSize);
+		  stroke(255);
+		  line(rectX,rectY+rectSize/2,rectX+rectSize,rectY+rectSize/2);
+
+		  if (plusOver) {
+		    fill(rectHighlight);
+		  } else {
+		    fill(rectColor);
+		  }
+		  rect(plusX, plusY, rectSize, rectSize);
+		  line(plusX,rectY+rectSize/2,plusX+rectSize,rectY+rectSize/2);
+		  line(plusX+rectSize/2,rectY,plusX+rectSize/2,rectY+rectSize);
+
+		  //pick random direction
+		  int dir = int(random(0,sides));
+		  //move x of the distance towards that point
+
+		  for(int i = 0; i<sides; i++){
+		    if (dir == i){
+		      dot = color(colors[i]);
+		      seed.x = seed.x + (points[i].x-seed.x)*(1-ratio);
+		      seed.y = seed.y + (points[i].y-seed.y)*(1-ratio);
+		    }
+		  }
+
+		  //draw new point
+
+		  stroke(dot);
+		  ellipse(seed.x,seed.y,2,2);
+
+		}
+
+		void setUp(){
+		  points = new PVector[sides];
+		  colors = new color[sides];
+		  drawPoints(width/2,height/2,500,sides);
+		  //work on adding in a random seed
+		  seed = new PVector(300,300);
+		  stroke(0);
+		  ellipse(seed.x,seed.y,1,1);
+		  getRatio(sides);
+		}
+
+		void getRatio(int nSides){
+		  float sum = 0;
+		  int limit = floor(nSides/4);
+		  for(int i = 1; i <= limit; i++){
+		    sum += cos((2*PI*i)/nSides);
+		  }
+		  ratio = 1/(2*(1+ sum));
+		}
+
+		void drawPoints(float cx, float cy, float sz, int nSides){
+		  // draw a hexagon centered at cx, cy
+		   float radius = sz/2;
+		   float theta = 0.0;
+		   float delta = 360.0/nSides;
+		   for (int i = 0; i < nSides; i++) {
+		     theta = theta + delta;
+		     PVector v = new PVector(cx + radius * cos(radians(theta)),cy - radius * sin(radians(theta)));
+		     points[i] = v;
+		     color nc = color(random(255),random(255),random(255));
+		     fill(nc);
+		     colors[i] = nc;
+		     ellipse(v.x,v.y,5,5);
+		   }
+		}
+
+		void update() {
+		  if ( overRect(plusX, plusY, rectSize, rectSize) ) {
+		    plusOver = true;
+		    rectOver = false;
+		  } else if ( overRect(rectX, rectY, rectSize, rectSize) ) {
+		    rectOver = true;
+		    plusOver = false;
+		  } else {
+		    plusOver = rectOver = false;
+		  }
+		}
+
+		void mousePressed() {
+		  if (plusOver) {
+		  	if (sides==3){
+		  		sides+=2;
+			}
+			else{
+		    sides++;
+			}
+		    background(255);
+		    text(sides,rectX + 5*rectSize/4, rectY+5*rectSize/6);
+		    setUp();
+		  }
+		  if (rectOver) {
+		  	if (sides==3){
+		  		sides=sides;
+		  	}
+		  	else if(sides==5){
+		  		sides-=2;
+		  	}
+		  	else{
+		  		sides--;
+		  	}
+		    background(255);
+		    text(sides,rectX + 5*rectSize/4, rectY+5*rectSize/6);
+		    setUp();
+		}
+		}
+
+		boolean overRect(int x, int y, int w, int h)  {
+		  if (mouseX >= x && mouseX <= x+w &&
+		      mouseY >= y && mouseY <= y+h) {
+		    return true;
+		  } else {
+		    return false;
+		  }
+		}
+	</script>
+
+	<script type="text/processing" data-processing-target="snowflake">
+		ArrayList<KochLine> lines;
+		color red = color(255,0,0);
+		color blue = color(0,0,255);
+
+
+		void setup() {
+		  size(600, 600);
+		  background(255);
+		  lines = new ArrayList<KochLine>();
+		  float side_length = 400;
+
+		  PVector bottom_left = new PVector(100, 400);
+		  PVector bottom_right   = new PVector(bottom_left.x+side_length, 400);
+		  float h = (side_length/2)*sqrt(3);
+		  PVector top = new PVector(bottom_left.x + side_length/2, bottom_left.y - h);
+
+		  lines.add(new KochLine(bottom_left, top,0));
+		  lines.add(new KochLine(top, bottom_right,0));
+		  lines.add(new KochLine(bottom_right,bottom_left,0));
+		  frameRate(1);
+		}
+		void draw() {
+		  background(255);
+		  for (KochLine l : lines) {
+		    l.display();
+		  }
+		   generate();
+		  if (frameCount>6){
+		    noLoop();
+		  }
+		}
+
+		void generate() {
+		  ArrayList next = new ArrayList<KochLine>();
+		  for (KochLine l : lines) {
+		    PVector a = l.kochA();
+		    PVector b = l.kochB();
+		    PVector c = l.kochC();
+		    PVector d = l.kochD();
+		    PVector e = l.kochE();
+		    next.add(new KochLine(a, b,0));
+		    next.add(new KochLine(b, c,red));
+		    next.add(new KochLine(c, d,blue));
+		    next.add(new KochLine(d, e,0));
+		  }
+
+		  lines = next;
+		}
+
+
+		class KochLine {
+		  PVector start;
+		  PVector end;
+		  color col;
+
+		  KochLine(PVector a, PVector b, color c) {
+		    start = a.get();
+		    end = b.get();
+		    col = c;
+		  }
+
+		  void display() {
+		    stroke(col);
+		    line(start.x, start.y, end.x, end.y);
+		  }
+
+		  PVector kochA() {
+		    return start.get();
+		  }
+
+		  PVector kochE() {
+		    return end.get();
+		  }
+
+		  PVector kochB() {
+		    PVector v = PVector.sub(end, start);
+		    v.div(3);
+		    v.add(start);
+		    return v;
+		  }
+
+		  PVector kochC() {
+		    PVector a = start.get();
+		    PVector v = PVector.sub(end, start);
+		    v.div(3);
+		    a.add(v);
+		    v.rotate(-radians(60));
+		    a.add(v);
+		    return a;
+		  }
+
+		  PVector kochD() {
+		    PVector v = PVector.sub(end, start);
+		    v.mult(2/3.0);
+		    v.add(start);
+		    return v;
+		  }
+		}
+	</script>
+
+	<canvas id="processing-canvas"> </canvas>
+	<p>Koch Snowflake</p>
+	<canvas id="snowflake"></canvas>
+</body>
+</html>
